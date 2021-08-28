@@ -7,6 +7,7 @@ from typing import List
 from matplotlib.colors import LinearSegmentedColormap
 import scipy
 from scipy.spatial import Delaunay
+from visualizations import make_plot, make_cmap, plot_data
 
 # %%
 
@@ -20,36 +21,6 @@ class GraphTools():
             self.gabriel_edges = self._gabriel_graph(points)
         self.metric = metric
     
-    ## Plotting functions:
-    def _make_plot(self) -> None:
-        """Plot templates."""
-        plt.figure(figsize=(12,12))
-        plt.style.use('dark_background')
-        plt.rc('axes',edgecolor='k')
-        ax = plt.axes()
-        ax.tick_params(axis='x', colors='darkgrey')
-        ax.tick_params(axis='y', colors='darkgrey')
-
-    def _make_cmap(self, colors : List = None) -> None:
-        if colors is None:
-            colors = ["hotpink", "orchid", "palegreen", "mediumspringgreen", "aqua", "dodgerblue"]
-        cmap = LinearSegmentedColormap.from_list("custom_bright", colors)
-        return cmap
- 
-    def plot_data(self, new_plot : bool = True, data : np.ndarray = None, color : str = 'cyan', 
-                  y_labels : np.ndarray = None, size : int = 40, alpha : float = 1) -> None:
-        if data is None:
-            data = self.points
-        if y_labels is not None:
-            color = y_labels
-        if new_plot:
-            self._make_plot()
-
-        cmap = self._make_cmap
-        plt.scatter(data[:,0], data[:,1], c = color, marker='o', cmap=cmap, s=size, zorder= 14, alpha=alpha)
-        plt.scatter(data[:,0], data[:,1], color='k', marker='o', cmap=cmap, s=size, zorder=1, alpha=0.6, linewidths=6)
-        plt.grid(True,c='darkgrey', alpha=0.3)
-
     ## Graph constructors.
     def _delaunay_triangulation(self, points) -> scipy.spatial.qhull.Delaunay:
         """Constructs the Delaunay triangulation.
@@ -111,7 +82,7 @@ class GraphTools():
         if points is not None:
             self.__init__(points)
  
-        self.plot_data()
+        plot_data(self.points)
         for edge in self.gabriel_edges:
             plt.plot(self.points[[*edge]][:,0], self.points[[*edge]][:,1], '-', color='palegreen')
             # self._plot_data(points[[*edge]], size=40)
@@ -120,14 +91,14 @@ class GraphTools():
         if points is not None:
             self.__init__(points)
 
-        self.plot_data(color='pink')
+        plot_data(self.points, color='pink')
         plt.triplot(self.points[:,0], self.points[:,1], self.triangulation.simplices, color='hotpink')
     
     def plot_all(self, points : np.ndarray = None) -> None:
         if points is not None:
             self.__init__(points)
 
-        self.plot_data()
+        plot_data(self.points)
         for edge in self.gabriel_edges:
             plt.plot(self.points[[*edge]][:,0], self.points[[*edge]][:,1], '-', color='palegreen')
 

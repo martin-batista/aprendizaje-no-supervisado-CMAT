@@ -33,11 +33,18 @@ def make_cmap(colors : List = None) -> None:
     cmap = LinearSegmentedColormap.from_list("custom_bright", colors)
     return cmap
  
-def plot_data(data : np.ndarray, plt : matplotlib.pyplot, y_labels : np.ndarray = None, cmap : str = 'Set3', size : int = 15, alpha : float = 1) -> None:
+def plot_data(data : np.ndarray, plt : matplotlib.pyplot = None, y_labels : np.ndarray = None, color : str  = None, 
+              cmap : str = None, size : int = 15, alpha : float = 1) -> None:
     """Plots the data points. Colors them based on the y_labels parameter if available."""
-    if y_labels is None:
+    if plt is None:
+        plt = make_plot()
+    
+    if cmap is None:
+        cmap = make_cmap()
+
+    if y_labels is None and color is None:
         color = 'cyan'
-    else:
+    elif y_labels is not None:
         color = y_labels
 
     plt.scatter(data[:,0], data[:,1], c = color, marker='o', cmap=cmap, s=size, zorder= 14, alpha=alpha)
@@ -151,7 +158,7 @@ def plot_clusters(X : np.ndarray, clusterer : Callable,  show_boundaries : bool 
         cmap = make_cmap()
     cluster_labels = clusterer.predict(X)
     center_labels = clusterer.predict(clusterer.cluster_centers_)
-    plt = plot_data(X, plt, cluster_labels, cmap)
+    plt = plot_data(X, plt, cluster_labels)
 
     if show_centroids:
         plt = plot_centroids(clusterer.cluster_centers_, center_labels, plt,cmap)

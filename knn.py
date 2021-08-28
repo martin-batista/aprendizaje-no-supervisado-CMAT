@@ -1,13 +1,14 @@
 # %%
 # Librerias utilizadas:
-from os import remove
 import numpy as np
-from typing import Callable, Union, List
+from typing import Union, List
 from scipy.stats import multivariate_normal, bernoulli
-from matplotlib.colors import LinearSegmentedColormap
+
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
+
 from spatial import GraphTools
+from visualizations import plot_clusters
 
 # %%
 # Creación de datos. 
@@ -31,83 +32,13 @@ def make_data(n : int = 300) -> np.ndarray:
 
     return np.concatenate([normal_1_points, normal_2_points], axis=0)
 
-# Creación de gráficas:
-
-def make_plot() -> None:
-    """Plot templates."""
-    plt.figure(figsize=(12,12))
-    plt.style.use('dark_background')
-    plt.rc('axes',edgecolor='k')
-    ax = plt.axes()
-    ax.tick_params(axis='x', colors='darkgrey')
-    ax.tick_params(axis='y', colors='darkgrey')
-
-def make_cmap(colors : List = None) -> None:
-    if colors is None:
-        colors = ["hotpink", "orchid", "palegreen", "mediumspringgreen", "aqua", "dodgerblue"]
-    cmap = LinearSegmentedColormap.from_list("custom_bright", colors)
-    return cmap
- 
-def plot_data(data : np.ndarray, y_labels : np.ndarray = None, cmap : str = 'Set3', size : int = 15, alpha : float = 1) -> None:
-    if y_labels is None:
-        color = 'cyan'
-    else:
-        color = y_labels
-
-    plt.scatter(data[:,0], data[:,1], c = color, marker='o', cmap=cmap, s=size, zorder= 14, alpha=alpha)
-    plt.scatter(data[:,0], data[:,1], color='k', marker='o', cmap=cmap, s=size, zorder=1, alpha=0.6, linewidths=6)
-    plt.grid(True,c='darkgrey', alpha=0.3)
-
-def plot_centroids(centroids : np.ndarray, center_labels : np.ndarray, cmap: str, weights : float =None) -> None:
-    if weights is not None:
-        centroids = centroids[weights > weights.max() / 10]
-    plt.scatter(centroids[:, 0], centroids[:, 1],
-                marker='o', s=85, linewidths=12,
-                # color='grey', cmap = 'Set3', zorder=10, alpha=0.5)
-                c=center_labels, cmap = cmap, zorder=20, alpha=0.4)
-    plt.scatter(centroids[:, 0], centroids[:, 1],
-                marker='x', s=5, linewidths=17,
-                color='k', cmap = cmap, zorder=25, alpha=1)
-                # c=center_labels, cmap = 'Set3', zorder=11, alpha=1)
-
-def plot_decision_boundaries(clusterer : Callable, X : np.ndarray, cmap:str, resolution : int =1000, show_centroids : bool =True,
-                             show_xlabels : bool =True, show_ylabels :bool =True) -> None:
-    mins = X.min(axis=0) - 0.1
-    maxs = X.max(axis=0) + 0.1
-    cluster_labels = clusterer.predict(X)
-    center_labels = clusterer.predict(clusterer.cluster_centers_)
-    xx, yy = np.meshgrid(np.linspace(mins[0], maxs[0], resolution),
-                         np.linspace(mins[1], maxs[1], resolution))
-    Z = clusterer.predict(np.c_[xx.ravel(), yy.ravel()])
-    Z = Z.reshape(xx.shape)
-
-    plt.contourf(Z, extent=(mins[0], maxs[0], mins[1], maxs[1]),
-                cmap=cmap, alpha=0.2)
-    plt.contour(Z, extent=(mins[0], maxs[0], mins[1], maxs[1]),
-                linewidths=1, colors='k')
-    plot_data(X, cluster_labels, cmap)
-    if show_centroids:
-        plot_centroids(clusterer.cluster_centers_, center_labels, cmap)
-
-    if show_xlabels:
-        plt.xlabel("$x_1$", fontsize=14)
-    else:
-        plt.tick_params(labelbottom=False)
-    if show_ylabels:
-        plt.ylabel("$x_2$", fontsize=14, rotation=0)
-    else:
-        plt.tick_params(labelleft=False)
-
-
 # %%
 if __name__ == '__main__':
     data = make_data()
-    kmeans = KMeans(n_clusters=2)
+    kmeans = KMeans(n_clusters=28)
     kmeans.fit(data)
 
-    make_plot() # Grafica nueva.
-    cmap = make_cmap()
-    plot_decision_boundaries(kmeans, data, cmap)
+    plot_clusters(data, kmeans, True)
 
 # %%
 gt = GraphTools(data)

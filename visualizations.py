@@ -7,6 +7,27 @@ from itertools import cycle
 from scipy.spatial import Voronoi, voronoi_plot_2d
 import numpy as np
 
+def make_figure(fig = None) -> None:
+    """Plot templates."""
+    if fig is None:
+        fig, ax = plt.subplots()
+        plt.figure(figsize=(12,12))
+        plt.style.use('dark_background')
+        plt.rc('axes',edgecolor='k')
+        plt.grid(True,c='darkgrey', alpha=0.3)
+        return fig, ax
+    else: 
+        plt.rcParams["figure.figsize"] = (12,12)
+        plt.style.use('dark_background')
+        plt.rc('axes',edgecolor='k')
+        plt.grid(True,c='darkgrey', alpha=0.3)
+    
+    ax = fig.gca()
+    ax.tick_params(axis='x', colors='darkgrey')
+    ax.tick_params(axis='y', colors='darkgrey')
+
+    return fig
+
 def make_plot(fig = None) -> None:
     """Plot templates."""
     if fig is None:
@@ -26,10 +47,16 @@ def make_plot(fig = None) -> None:
 
     return plt
 
-def make_cmap(colors : List = None) -> None:
+def make_cmap(theme : str = 'dark', colors : List = None) -> None:
     """Creates a custom linear colormap."""
     if colors is None:
-        colors = ["hotpink", "orchid", "palegreen", "mediumspringgreen", "aqua", "dodgerblue"]
+        if theme == 'dark':
+            colors = ["darkturquoise", "palegreen", "hotpink", "tomato", "orchid", "violet", "mediumspringgreen",
+                      "lightseagreen", "khaki"]
+        elif theme == 'light':
+            colors = ['teal', 'steelblue', 'royalblue', 'indigo', 'darkorchid', 'palevioletred', 'lightpink',
+                      'lightcoral', 'tomato', 'coral', 'peru', 'darkorange', 'gold', 'olive', 'forestgreen']
+
     cmap = LinearSegmentedColormap.from_list("custom_bright", colors)
     return cmap
  

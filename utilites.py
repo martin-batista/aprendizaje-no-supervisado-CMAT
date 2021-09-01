@@ -32,10 +32,8 @@ from metrics import dunn
 # %%
 
 class GraphTools():
-    """
-       This class is a wrapper for NetworkX containg helper functions to construct and measure different properties of
-       spatial neighborhood graphs. Primarily used in clustering.
-    """
+    #    This class is a uses NetworkX, Sklearn and Scipy to construct and measure different properties of
+    #    spatial neighborhood graphs for the purpose of assesing cluster validity.
 
     def __init__(self, points : np.ndarray = None, clusterer : Callable = None, metric : Callable = l2_distance) -> None:
         if points is not None:
@@ -285,7 +283,19 @@ class GraphTools():
     
     def get_shortest_path(self, G : nx.Graph) -> nx.Graph:
         """
-           Returns the shortest path in the graph.
+           Returns the shortest path in the graph. 
+
+           Paramters:
+           ----------
+                G : [nx.Graph] A netwrokX graph.
+            
+           Returns:
+           --------
+                shortest_distance : [float] The shortest distance inside the graph.
+           
+           Raises:
+           -------
+                Assertion Error if the graph is empty.
         """
         assert not nx.is_empty(G), "Empty graph!"
         pairwise_shortest_distances = nx.all_pairs_dijkstra_path_length(G)
@@ -301,9 +311,18 @@ class GraphTools():
         nodes = nx.dijkstra_path(G, shortest_source, shortest_target)
         return nodes
 
-    def shortest_distance(self, G : nx.Graph) -> nx.Graph:
+    def shortest_distance(self, G : nx.Graph) -> float:
         """
            Returns the shortest distance in the graph.
+           If the graph is empty, it returns inf.
+
+           Paramters:
+           ----------
+                G : [nx.Graph] A netwrokX graph.
+            
+           Returns:
+           --------
+                shortest_distance : [float] The shortest distance inside the graph.
         """
         if nx.is_empty(G):
             return math.inf
@@ -321,6 +340,15 @@ class GraphTools():
     def _connected_diameter(self, G : nx.Graph) -> nx.Graph:
         """
            Returns diameter of the weakly connected graph. 
+           The diameter is the length of the largest geodesic inside the graph.
+
+           Paramters:
+           ----------
+                G : [nx.Graph] The graph to calculate the diameter of.
+           
+           Returns:
+           --------
+                diameter : [float] The diameter of the graph.
         """
         d = nx.all_pairs_dijkstra_path_length(G)
         e = nx.eccentricity(G, sp=dict(d))
@@ -359,21 +387,51 @@ class GraphTools():
     
     def cluster_diameter(self, G : nx.Graph, n_cluster : int) -> float: 
         """
-           Returns the diameter of a cluster in graph G.
+           Returns the diameter of a specified cluster in graph G.
+
+           Parameters:
+           -----------
+                G : [nx.Graph] The data graph.
+                n_cluster : [int] The cluster number.
+            
+           Reutrns:
+           --------
+                min_cluster_distance : [float] The diameter (length of the largest geodesic) of a cluster in a given graph.
         """
         cG = self.get_cluster_subgraph(G, n_cluster)
         return self.diameter(cG)
 
     def min_cluster_distance(self, G : nx.Graph, n_cluster : int) -> float:
         """
-            Returns the minimum distance from cluster n_cluster to another cluster.
+            Returns the minimum graph distance from cluster n_cluster to another cluster.
+
+           Parameters:
+           -----------
+                G : [nx.Graph] The data graph.
+                n_clusters : [int] The number of clusters present in the graph.
+            
+           Reutrns:
+           --------
+                min_cluster_distance : [float] The minimum distance to an adjacent graph. 
         """
         tG = self.get_transitions_subgraph(G, n_cluster)
         return self.shortest_distance(tG)
     
     def modified_dunn_index(self, G : nx.Graph, n_clusters : int) -> float:
         """
-           Calculates the modified Dunn index based on neighborhood graphs.
+           Calculates the modified Dunn index based on neighborhood graphs. The Dunn index is defined as the
+           min_d(c_i,c_j)/max_D(c_k) for all i,j,k, where min_d is the cluster distance as measured by min_cluster_distance(G , n_cluster)
+           and max_D(c_k) is the largest diameter of the clusters.
+           The distance is calculated by traversals in the weighted graph.
+
+           Parameters:
+           -----------
+                G : [nx.Graph] The data graph.
+                n_clusters : [int] The number of clusters present in the graph.
+            
+           Reutrns:
+           --------
+                modified_dunn_index : [float] The modified version of the Dunn index, where distances are calculated in the graph.
         """
         max_diameter = 0
         min_distance = -1

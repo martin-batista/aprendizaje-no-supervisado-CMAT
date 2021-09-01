@@ -28,17 +28,27 @@ def make_figure(fig = None) -> None:
 
     return fig
 
-def make_plot(fig = None) -> None:
+def make_plot(fig = None, plot_size = 12, theme='dark') -> None:
     """Plot templates."""
     if fig is None:
-        fig = plt.figure(figsize=(12,12))
-        plt.style.use('dark_background')
-        plt.rc('axes',edgecolor='k')
+        fig = plt.figure(figsize=(plot_size,plot_size))
+        if theme == 'dark':
+            plt.style.use('dark_background')
+            plt.rc('axes',edgecolor='k')
+        elif theme == 'light':
+            plt.style.use('seaborn')
+            plt.rc('axes',edgecolor='white')
+
         plt.grid(True,c='darkgrey', alpha=0.3)
     else: 
-        plt.rcParams["figure.figsize"] = (12,12)
-        plt.style.use('dark_background')
-        plt.rc('axes',edgecolor='k')
+        plt.rcParams["figure.figsize"] = (plot_size, plot_size)
+        if theme == 'dark':
+            plt.style.use('dark_background')
+            plt.rc('axes',edgecolor='k')
+        elif theme == 'light':
+            plt.style.use('seaborn')
+            plt.rc('axes',edgecolor='white')
+
         plt.grid(True,c='darkgrey', alpha=0.3)
     
     ax = fig.gca()
@@ -51,23 +61,23 @@ def make_cmap(theme : str = 'dark', colors : List = None) -> None:
     """Creates a custom linear colormap."""
     if colors is None:
         if theme == 'dark':
-            colors = ["darkturquoise", "palegreen", "hotpink", "tomato", "orchid", "violet", "mediumspringgreen",
+            colors = ["darkturquoise", "hotpink",  "palegreen", "tomato", "orchid", "violet", "mediumspringgreen",
                       "lightseagreen", "khaki"]
         elif theme == 'light':
-            colors = ['teal', 'steelblue', 'royalblue', 'indigo', 'darkorchid', 'palevioletred', 'lightpink',
-                      'lightcoral', 'tomato', 'coral', 'peru', 'darkorange', 'gold', 'olive', 'forestgreen']
+            colors = ['teal', 'tomato', 'steelblue', 'royalblue', 'indigo', 'darkorchid', 'palevioletred', 'lightpink',
+                      'lightcoral', 'coral', 'peru', 'darkorange', 'gold', 'olive', 'forestgreen']
 
     cmap = LinearSegmentedColormap.from_list("custom_bright", colors)
     return cmap
  
 def plot_data(data : np.ndarray, plt : matplotlib.pyplot = None, y_labels : np.ndarray = None, color : str  = None, 
-              cmap : str = None, size : int = 15, alpha : float = 1) -> None:
+              cmap : str = None, size : int = 15, alpha : float = 1, theme = 'dark', plot_size = 12) -> None:
     """Plots the data points. Colors them based on the y_labels parameter if available."""
     if plt is None:
-        plt = make_plot()
+        plt = make_plot(theme=theme, plot_size=plot_size)
     
     if cmap is None:
-        cmap = make_cmap()
+        cmap = make_cmap(theme)
 
     if y_labels is None and color is None:
         color = 'cyan'
@@ -174,18 +184,18 @@ def voronoi_finite_polygons_2d(vor, radius=None):
     return new_regions, np.asarray(new_vertices)
 
 def plot_clusters(X : np.ndarray, clusterer : Callable,  show_boundaries : bool = True, plt : matplotlib.pyplot = None,
-                 cmap : str = None, resolution : int =1000, show_centroids : bool =True,
+                 cmap : str = None, resolution : int =1000, show_centroids : bool =True, plot_size = 12, theme='dark',
                  show_xlabels : bool =True, show_ylabels :bool =True,) -> None:
     """Plots the cluster data and the decision boundaries. If the number of clusters is above 4, it utilizes
        the Voronoi tessellation to construct the boundaries.
     """
     # Plot the data points and cluster centers.
-    plt = make_plot(plt)
+    plt = make_plot(plt, plot_size = plot_size, theme=theme)
     if cmap is None:
-        cmap = make_cmap()
+        cmap = make_cmap(theme)
     cluster_labels = clusterer.predict(X)
     center_labels = clusterer.predict(clusterer.cluster_centers_)
-    plt = plot_data(X, plt, cluster_labels)
+    plt = plot_data(X, plt, cluster_labels, theme=theme, plot_size = plot_size)
 
     if show_centroids:
         plt = plot_centroids(clusterer.cluster_centers_, center_labels, plt,cmap)

@@ -1,4 +1,5 @@
 # %%
+import re
 from typing import Callable
 from collections.abc import Iterable
 
@@ -15,6 +16,7 @@ from matplotlib.colors import LinearSegmentedColormap
 import matplotlib.cm as cm
 
 import scipy
+import math
 from scipy.spatial import Delaunay
 from sklearn import cluster
 from visualizations import make_plot, make_cmap, plot_data
@@ -24,6 +26,7 @@ from metrics import l2_distance
 from typing import Union, List
 from scipy.stats import multivariate_normal, bernoulli
 from sklearn.cluster import KMeans
+from metrics import dunn
 # %matplotlib
 
 # %%
@@ -301,21 +304,18 @@ class GraphTools():
         """
            Returns the shortest distance in the graph.
         """
-        assert not nx.is_empty(G), "Empty graph!"
-        pairwise_shortest_distances = nx.all_pairs_dijkstra_path_length(G)
-        shortest_distance = -1
-        for node, path_dict in pairwise_shortest_distances:
-            for path_node, distance in path_dict.items():
-                if path_node != node:
-                    if distance < shortest_distance or shortest_distance < 0:
-                        shortest_distance = distance
+        if nx.is_empty(G):
+            return math.inf
+        else:
+            pairwise_shortest_distances = nx.all_pairs_dijkstra_path_length(G)
+            shortest_distance = -1
+            for node, path_dict in pairwise_shortest_distances:
+                for path_node, distance in path_dict.items():
+                    if path_node != node:
+                        if distance < shortest_distance or shortest_distance < 0:
+                            shortest_distance = distance
 
         return shortest_distance
-    
-    def cluster_distance(self, G, n_cluster) -> float:
-        tG = self.get_transitions_subgraph(G, n_cluster)
-        return self.shortest_distance(tG)
-
 
     def _connected_diameter(self, G : nx.Graph) -> nx.Graph:
         """
@@ -339,20 +339,52 @@ class GraphTools():
            --------
                 diameter : [float] The diameter of the graph.
         """
-        
-        if not G.is_directed():
-            if nx.is_connected(G):
-                return self._connected_diameter(G)
-            else:
-                diameter = 0
-                for connected_nodes in nx.connected_components(G):
-                    connected_sG = G.subgraph(connected_nodes)
-                    sG_diameter = self._connected_diameter(connected_sG) 
-                    if sG_diameter > diameter:
-                        diameter = sG_diameter
-                return diameter
+        if nx.is_empty(G):
+            return 0.
         else:
-            return nx.dag_longest_path_length(G)
+            if not G.is_directed():
+                if nx.is_connected(G):
+                    return self._connected_diameter(G)
+                else:
+                    diameter = 0
+                    for connected_nodes in nx.connected_components(G):
+                        connected_sG = G.subgraph(connected_nodes)
+                        sG_diameter = self._connected_diameter(connected_sG) 
+                        if sG_diameter > diameter:
+                            diameter = sG_diameter
+                    return diameter
+            else:
+                return nx.dag_longest_path_length(G)
+    
+    def cluster_diameter(self, G : nx.Graph, n_cluster : int) -> float: 
+        """
+           Returns the diameter of a cluster in graph G.
+        """
+        cG = self.get_cluster_subgraph(G, n_cluster)
+        return self.diameter(cG)
+
+    def min_cluster_distance(self, G : nx.Graph, n_cluster : int) -> float:
+        """
+            Returns the minimum distance from cluster n_cluster to another cluster.
+        """
+        tG = self.get_transitions_subgraph(G, n_cluster)
+        return self.shortest_distance(tG)
+    
+    def modified_dunn_index(self, G : nx.Graph, n_clusters : int) -> float:
+        """
+           Calculates the modified Dunn index based on neighborhood graphs.
+        """
+        max_diameter = 0
+        min_distance = -1
+        for n_cluster in range(n_clusters):
+            _cluster_distance = self.min_cluster_distance(G, n_cluster)
+            _cluster_diameter = self.cluster_diameter(G, n_cluster)
+            if _cluster_distance < min_distance or min_distance < 0:
+                min_distance = _cluster_distance
+            if _cluster_diameter > max_diameter:
+                max_diameter = _cluster_diameter
+        
+        return min_distance/max_diameter
 
     ## Graph plotting.
 
@@ -371,9 +403,12 @@ class GraphTools():
             if theme == 'light':
                 fig = plt.figure(figsize=(plot_size,plot_size), edgecolor='white', facecolor='white')
                 plt.style.use('seaborn')
+                plt.rc('axes',edgecolor='white')
             elif theme == 'dark':
                 fig = plt.figure(figsize=(plot_size,plot_size), edgecolor='black', facecolor='black')
                 plt.style.use('dark_background')
+                plt.rc('axes',edgecolor='black')
+
             lst = [i for i, _ in enumerate(self.clusterer.cluster_centers_)]
             color_minima = lst[0]
             color_maxima = lst[-1]
@@ -435,7 +470,7 @@ class GraphTools():
             nx.draw_networkx_edges(G,pos,edgelist=path_edges, edge_color=diameter_color, width=edge_width*diameter_factor)
 
         plt.grid(True,c='darkgrey', alpha=0.3)
-        plt.axis('on') 
+        plt.axis('on',) 
         ax.tick_params(left=True, bottom=True, labelleft=True, labelbottom=True)
         plt.xlabel("$x_1$", fontsize=plot_size + 3)
         plt.ylabel("$x_2$", fontsize=plot_size + 3)
@@ -469,7 +504,8 @@ if __name__ == '__main__':
         return np.concatenate([normal_1_points, normal_2_points], axis=0)
 
     data = make_data()
-    kmeans = KMeans(n_clusters=2)
+    n_clusters = 4
+    kmeans = KMeans(n_clusters)
     kmeans.fit(data)
     gt = GraphTools(data, kmeans)
     G = gt.gabriel_graph()
@@ -489,7 +525,8 @@ if __name__ == '__main__':
         print(n_cluster)
         nG = gt.get_cluster_subgraph(G, n_cluster)
         tG = gt.get_transitions_subgraph(G, n_cluster)
-        # print(gt.diameter(nG))
+        print(gt.diameter(nG))
+        print(gt.min_cluster_distance(G,n_cluster))
         # print(gt._connected_diameter(nG))
         fig, plot = gt.draw(tG, fig=fig, shortest_distance = True, theme='light', edge_color='dimgray')
         fig, plot = gt.draw(nG, fig=fig, theme=theme)
@@ -502,5 +539,10 @@ if __name__ == '__main__':
 
     # print(gt.delaunay_simplices)
     # gt.plot_delaunay()
+    print('Modified Dunn:', gt.modified_dunn_index(G, n_clusters))
+    labels = kmeans.predict(data)
+    print('Dunn index: ', dunn(data, labels))
+    
+
 
 # %%

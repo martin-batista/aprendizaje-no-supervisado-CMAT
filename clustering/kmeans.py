@@ -9,7 +9,11 @@ from matplotlib.ticker import FixedLocator, FixedFormatter
 
 import matplotlib.pyplot as plt
 import matplotlib as mpl
+import os
 from sklearn.cluster import KMeans
+
+dirname = os.path.dirname
+os.chdir(dirname(os.getcwd()))
 
 from utilites import GraphTools
 from metrics import dunn
@@ -53,7 +57,8 @@ if __name__ == '__main__':
     D = gt.delaunay_graph()
     G = gt.gabriel_graph()
 
-    gt.draw(G, theme=theme)
+    gt.draw(G)
+    # gt.draw(G, diameter=True, voronoi=True)
     plt.show()
 
 # %%
@@ -70,7 +75,7 @@ if __name__ == '__main__':
     print('Silhouette score:', silhouette_score(data, kmeans.labels_))
 
 # %%
-    ## Agregamos los outliers.
+    # Agregamos los outliers.
     outliers = gaussian_blob(10, [20,20], cov = 0.05*np.array([[1,0], [0,1]]))
     points = np.concatenate([data, outliers])
     n_clusters = 2
@@ -134,7 +139,7 @@ if __name__ == '__main__':
     print('Silhouette score:', silhouette_score(data, kmeans.labels_))
 
 # %%
-    ## Agregamos los outliers.
+    # Agregamos los outliers.
     outliers = gaussian_blob(10, [20,20], cov = 0.05*np.array([[1,0], [0,1]]))
     points = np.concatenate([data, outliers])
     n_clusters = 2
@@ -166,7 +171,10 @@ if __name__ == '__main__':
     print('Silhouette score:', silhouette_score(points, kmeans.labels_))
 
 # %%
-    ## Elbow plot:
+    # Las siguientes gráficas son una modificación de las gráficas presentes en:
+    # "Hands-On Machine Learning with Scikit-Learn Keras & Tensorflow 2nd ed." - Aurelien Geron
+
+    # Elbow plot:
     data = make_data()
     kmeans_per_k = [KMeans(n_clusters=k, random_state=42).fit(data)
                     for k in range(1, 10)]
@@ -189,7 +197,7 @@ if __name__ == '__main__':
     plt.show()
 
 # %%
-    ## Silhouette knives:
+    # Cuchillas de la silueta:
     plt.figure(figsize=(16, 12))
     silhouette_scores = [silhouette_score(data, model.labels_)
                         for model in kmeans_per_k[1:]]
@@ -253,8 +261,7 @@ if __name__ == '__main__':
     plt.show()
 
 # %%
-    #Silhouette scores for different k.
-
+    # El índice silueta para distintos valores de k.
     plt.figure(figsize=(14, 7))
     plt.plot(range(2, 10), silhouette_scores, "o-", c = 'darkorchid', lw=2, ms=9, label = 'Silhouette')
     plt.xlabel("$k$", fontsize=16)

@@ -32,14 +32,15 @@ from metrics import dunn
 # %%
 
 class GraphTools():
+    """
+       This class is a wrapper for NetworkX containg helper functions to construct and measure different properties of
+       spatial neighborhood graphs. Primarily used in clustering.
+    """
 
     def __init__(self, points : np.ndarray = None, clusterer : Callable = None, metric : Callable = l2_distance) -> None:
         if points is not None:
             self.points = points
-            # self.triangulation = self._delaunay_triangulation(points)
-            # self.simplices = self.triangulation.simplices
             self._delaunay_simplices = self._delaunay_triangulation(points).simplices
-            # self.gabriel_edges = self._gabriel_edges(points)
         
         self.clusterer = clusterer
         self._gabriel_graph = None
@@ -479,70 +480,5 @@ class GraphTools():
         plt.title(G.name, fontsize=plot_size + plot_size/2)
     
         return fig, plt
-
-# %%
-
-if __name__ == '__main__':
-    def gaussian_blob(n: int , mean : Union[List,np.ndarray], cov : Union[List, np.ndarray] = None) -> np.ndarray:
-        """Generates N-dimensional n gaussian samples using the scipy library. 
-        If cov is None it defaults to the identity."""
-
-        norm = multivariate_normal(mean=mean, cov=cov)
-        blob = norm.rvs(n)
-        return blob
-
-    def make_data(n : int = 660) -> np.ndarray:
-        """Samples from 0.5*N(0,I) and 0.5*N((4,4), I) given a bernoulli trial."""
-
-        bernoulli_trials = np.sum(bernoulli.rvs(0.5, size=n))
-        normal_1_trials = bernoulli_trials 
-        normal_2_trials = n - bernoulli_trials 
-
-        normal_1_points = 0.5*gaussian_blob(normal_1_trials, mean=[0,0],)
-        normal_2_points = 0.5*gaussian_blob(normal_2_trials, mean=[4,4],) 
-
-        return np.concatenate([normal_1_points, normal_2_points], axis=0)
-
-    data = make_data()
-    n_clusters = 4
-    kmeans = KMeans(n_clusters)
-    kmeans.fit(data)
-    gt = GraphTools(data, kmeans)
-    G = gt.gabriel_graph()
-    nG_1 = gt.get_cluster_subgraph(G, 0)
-    # nG_2 = gt.get_cluster_subgraph(G, 1)
-    # nG_3 = gt.get_cluster_subgraph(G, 2)
-    # nG_4 = gt.get_cluster_subgraph(G, 3)
-
-    D = gt.delaunay_graph()
-
-    # gt.draw(G, diameter=True)
-    # gt.draw_graph(D, diameter=True, theme = 'blue')
-    theme = 'light'
-    fig, plot = gt.draw(nG_1, theme=theme)
-    # print(fig)
-    for n_cluster in range(1,len(kmeans.cluster_centers_)):
-        print(n_cluster)
-        nG = gt.get_cluster_subgraph(G, n_cluster)
-        tG = gt.get_transitions_subgraph(G, n_cluster)
-        print(gt.diameter(nG))
-        print(gt.min_cluster_distance(G,n_cluster))
-        # print(gt._connected_diameter(nG))
-        fig, plot = gt.draw(tG, fig=fig, shortest_distance = True, theme='light', edge_color='dimgray')
-        fig, plot = gt.draw(nG, fig=fig, theme=theme)
-    # gt.draw(nG_2, fig=fig, diameter=True)
-    # gt.draw(nG_3, fig=fig, diameter=True)
-    # gt.draw(nG_4, fig=fig, diameter=True)
-    plt.show()
-    # tG = gt.get_transitions_subgraph(G, 0)
-    # gt.draw(tG, shortest_distance=True)
-
-    # print(gt.delaunay_simplices)
-    # gt.plot_delaunay()
-    print('Modified Dunn:', gt.modified_dunn_index(G, n_clusters))
-    labels = kmeans.predict(data)
-    print('Dunn index: ', dunn(data, labels))
-    
-
 
 # %%

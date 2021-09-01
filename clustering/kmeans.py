@@ -10,9 +10,8 @@ from matplotlib.ticker import FixedLocator, FixedFormatter
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 from sklearn.cluster import KMeans
-from itertools import combinations
 
-from graph import GraphTools
+from utilites import GraphTools
 from metrics import dunn
 from visualizations import plot_clusters
 

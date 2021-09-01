@@ -244,8 +244,9 @@ def plot_clusters(X : np.ndarray, clusterer : Callable,  show_boundaries : bool 
                 polygon = vertices[region]
                 plt.fill(*zip(*polygon),  color=mapper.to_rgba(rgba_value), alpha=0.2)
 
-            plt.xlim(vor.min_bound[0] - 0.1, vor.max_bound[0] + 0.1)
-            plt.ylim(vor.min_bound[1] - 0.1, vor.max_bound[1] + 0.1)
+            plt.xlim(vor.min_bound[0] - 1, vor.max_bound[0] + 1)
+            plt.ylim(vor.min_bound[1] - 1, vor.max_bound[1] + 1)
 
             voronoi_plot_2d(vor, plt.gca(), show_vertices=False, line_colors="black", line_width=1.5, point_size=0)
+            
         return plt

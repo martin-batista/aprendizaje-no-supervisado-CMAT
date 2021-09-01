@@ -59,6 +59,7 @@ if __name__ == '__main__':
 
     gt.draw(G)
     # gt.draw(G, diameter=True, voronoi=True)
+    # gt.draw(D, voronoi=True)
     plt.show()
 
 # %%
@@ -107,6 +108,7 @@ if __name__ == '__main__':
     print('Silhouette score:', silhouette_score(points, kmeans.labels_))
 
 # %%
+    # Cambiamos la media de los datos a [1.3, 1.3]
     data = make_data(mean_1=[1.3, 1.3])
     n_clusters = 2
     kmeans = KMeans(n_clusters)
@@ -199,13 +201,15 @@ if __name__ == '__main__':
 # %%
     # Cuchillas de la silueta:
     plt.figure(figsize=(16, 12))
+    kmeans_per_k = [KMeans(n_clusters=k, random_state=42).fit(data)
+                    for k in range(2, 6)]
     silhouette_scores = [silhouette_score(data, model.labels_)
-                        for model in kmeans_per_k[1:]]
+                        for model in kmeans_per_k]
 
     for k in (2, 3, 4, 5):
         plt.subplot(2, 2, k - 1)
         
-        y_pred = kmeans_per_k[k - 1].labels_
+        y_pred = kmeans_per_k[k - 2].labels_
         silhouette_coefficients = silhouette_samples(data, y_pred)
 
         padding = len(data) // 30
@@ -230,13 +234,14 @@ if __name__ == '__main__':
             plt.xlabel("Silhouette Coefficient", fontsize=16)
 
         plt.tick_params(labelsize = 14)
-        plt.axvline(x=silhouette_scores[k - 1], color="red", linestyle="--")
+        plt.axvline(x=silhouette_scores[k-2], color="red", linestyle="--")
         plt.title("$k={}$".format(k), fontsize=16)
         plt.grid(True,c='darkgrey', alpha=0.3)
 
     plt.show()
 
 # %%
+    # Comparacion de indices Dunn:
     kmeans_per_k = [KMeans(n_clusters=k, random_state=42).fit(data)
                     for k in range(2, 10)]
     silhouette_scores = [silhouette_score(data, model.labels_) for model in kmeans_per_k]
@@ -271,3 +276,4 @@ if __name__ == '__main__':
     plt.show()
 
 # %%
+

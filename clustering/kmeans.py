@@ -50,9 +50,10 @@ if __name__ == '__main__':
     theme = 'dark'
 
     plot_clusters(data, kmeans, theme=theme)
+    plt.savefig('img/kmeans_clusters.png')
     plt.show()
 
-# %%
+    # %%
     gt = GraphTools(data, kmeans)
     D = gt.delaunay_graph()
     G = gt.gabriel_graph()
@@ -60,9 +61,10 @@ if __name__ == '__main__':
     gt.draw(G)
     # gt.draw(G, diameter=True, voronoi=True)
     # gt.draw(D, voronoi=True)
+    plt.savefig('img/gabriel_graph.png')
     plt.show()
 
-# %%
+    # %%
     fig = plt.figure(figsize=(12,12))
     for n_cluster in range(0,len(kmeans.cluster_centers_)):
         nG = gt.get_cluster_subgraph(G, n_cluster)
@@ -71,11 +73,12 @@ if __name__ == '__main__':
         fig, plot = gt.draw(nG, fig=fig, theme=theme)
 
     plt.show()
+    plt.savefig('img/cluster_subgraphs.png')
     print('Modified Dunn:', gt.modified_dunn_index(G, n_clusters))
     print('Dunn index:', dunn(data, kmeans.labels_))
     print('Silhouette score:', silhouette_score(data, kmeans.labels_))
 
-# %%
+    # %%
     # Agregamos los outliers.
     outliers = gaussian_blob(10, [20,20], cov = 0.05*np.array([[1,0], [0,1]]))
     points = np.concatenate([data, outliers])
@@ -86,7 +89,7 @@ if __name__ == '__main__':
     plot_clusters(points, kmeans, theme=theme)
     plt.show()
 
-# %%
+    # %%
     gt = GraphTools(points, kmeans)
     D = gt.delaunay_graph()
     G = gt.gabriel_graph()
@@ -94,7 +97,7 @@ if __name__ == '__main__':
     gt.draw(G, theme=theme, node_size=5)
     plt.show()
 
-# %%
+    # %%
     fig = plt.figure(figsize=(12,12))
     for n_cluster in range(0,len(kmeans.cluster_centers_)):
         nG = gt.get_cluster_subgraph(G, n_cluster)
@@ -107,7 +110,7 @@ if __name__ == '__main__':
     print('Dunn index: ', dunn(points, kmeans.labels_))
     print('Silhouette score:', silhouette_score(points, kmeans.labels_))
 
-# %%
+    # %%
     # Cambiamos la media de los datos a [1.3, 1.3]
     data = make_data(mean_1=[1.3, 1.3])
     n_clusters = 2
@@ -118,7 +121,7 @@ if __name__ == '__main__':
     plot_clusters(data, kmeans, theme=theme)
     plt.show()
 
-# %%
+    # %%
     gt = GraphTools(data, kmeans)
     D = gt.delaunay_graph()
     G = gt.gabriel_graph()
@@ -126,7 +129,7 @@ if __name__ == '__main__':
     gt.draw(G, theme=theme)
     plt.show()
 
-# %%
+    # %%
     fig = plt.figure(figsize=(12,12))
     for n_cluster in range(0,len(kmeans.cluster_centers_)):
         nG = gt.get_cluster_subgraph(G, n_cluster)
@@ -140,7 +143,7 @@ if __name__ == '__main__':
     print('Dunn index: ', dunn(data, labels))
     print('Silhouette score:', silhouette_score(data, kmeans.labels_))
 
-# %%
+    # %%
     # Agregamos los outliers.
     outliers = gaussian_blob(10, [20,20], cov = 0.05*np.array([[1,0], [0,1]]))
     points = np.concatenate([data, outliers])
@@ -151,7 +154,7 @@ if __name__ == '__main__':
     plot_clusters(points, kmeans, theme=theme)
     plt.show()
 
-# %%
+    # %%
     gt = GraphTools(points, kmeans)
     D = gt.delaunay_graph()
     G = gt.gabriel_graph()
@@ -159,7 +162,7 @@ if __name__ == '__main__':
     gt.draw(G, theme=theme, node_size=5)
     plt.show()
 
-# %%
+    # %%
     fig = plt.figure(figsize=(12,12))
     for n_cluster in range(0,len(kmeans.cluster_centers_)):
         nG = gt.get_cluster_subgraph(G, n_cluster)
@@ -172,7 +175,7 @@ if __name__ == '__main__':
     print('Dunn index: ', dunn(points, kmeans.labels_))
     print('Silhouette score:', silhouette_score(points, kmeans.labels_))
 
-# %%
+    # %%
     # Las siguientes gráficas son una modificación de las gráficas presentes en:
     # "Hands-On Machine Learning with Scikit-Learn Keras & Tensorflow 2nd ed." - Aurelien Geron
 
@@ -198,7 +201,7 @@ if __name__ == '__main__':
     plt.grid(True,c='darkgrey', alpha=0.3)
     plt.show()
 
-# %%
+    # %%
     # Cuchillas de la silueta:
     plt.figure(figsize=(16, 12))
     kmeans_per_k = [KMeans(n_clusters=k, random_state=42).fit(data)
@@ -238,9 +241,10 @@ if __name__ == '__main__':
         plt.title("$k={}$".format(k), fontsize=16)
         plt.grid(True,c='darkgrey', alpha=0.3)
 
+    plt.savefig('img/silhouette.png', dpi=300)
     plt.show()
 
-# %%
+    # %%
     # Comparacion de indices Dunn:
     kmeans_per_k = [KMeans(n_clusters=k, random_state=42).fit(data)
                     for k in range(2, 10)]
@@ -263,9 +267,10 @@ if __name__ == '__main__':
     plt.ylabel("Score", fontsize=16)
     plt.legend(fontsize=14)
     plt.grid(True,c='darkgrey', alpha=0.3)
+    plt.savefig('img/dunn_scores.png', dpi=300)
     plt.show()
 
-# %%
+    # %%
     # El índice silueta para distintos valores de k.
     plt.figure(figsize=(14, 7))
     plt.plot(range(2, 10), silhouette_scores, "o-", c = 'darkorchid', lw=2, ms=9, label = 'Silhouette')
@@ -273,6 +278,7 @@ if __name__ == '__main__':
     plt.ylabel("Score", fontsize=16)
     plt.legend(fontsize=14)
     plt.grid(True,c='darkgrey', alpha=0.3)
+    plt.savefig('img/silhouette_scores.png', dpi=300)
     plt.show()
 
 # %%

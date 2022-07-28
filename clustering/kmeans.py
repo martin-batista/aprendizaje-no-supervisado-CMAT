@@ -65,15 +65,15 @@ if __name__ == '__main__':
     plt.show()
 
     # %%
-    fig = plt.figure(figsize=(12,12))
+    fig = plt.figure(figsize=(16,10))
     for n_cluster in range(0,len(kmeans.cluster_centers_)):
         nG = gt.get_cluster_subgraph(G, n_cluster)
         tG = gt.get_transitions_subgraph(G, n_cluster)
         fig, plot = gt.draw(tG, fig=fig, shortest_distance = True, theme='light', edge_color='dimgray')
         fig, plot = gt.draw(nG, fig=fig, theme=theme)
 
-    plt.show()
     plt.savefig('img/cluster_subgraphs.png')
+    plt.show()
     print('Modified Dunn:', gt.modified_dunn_index(G, n_clusters))
     print('Dunn index:', dunn(data, kmeans.labels_))
     print('Silhouette score:', silhouette_score(data, kmeans.labels_))
@@ -281,5 +281,5 @@ if __name__ == '__main__':
     plt.savefig('img/silhouette_scores.png', dpi=300)
     plt.show()
 
-# %%
+    # %%
 
